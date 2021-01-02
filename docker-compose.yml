@@ -1,0 +1,11 @@
+version: '3.8'
+services: 
+  api:
+    build:
+      dockerfile: Dockerfile.dev 
+      context: ./api
+    volumes: 
+      - /app/node_modules
+      - ./api:/app
+    ports:
+      - '8080:4000'
