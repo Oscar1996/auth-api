@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import 'dotenv/config';
 
 import Controller from './interfaces/controller.interface';
@@ -25,6 +26,7 @@ class App {
   }
 
   private initializeMiddleware() {
+    this.app.use(cors());
     this.app.use(bodyParser.json());
   }
 
@@ -43,7 +45,8 @@ class App {
     mongoose
       .connect(`mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}${MONGO_URI}`, {
         useNewUrlParser: true,
-        useUnifiedTopology: true
+        useUnifiedTopology: true,
+        useFindAndModify: false
       })
       .then(() => {
         this.listen();

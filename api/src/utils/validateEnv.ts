@@ -5,6 +5,7 @@ export default function validateEnv() {
     MONGO_USER: envalid.str(),
     MONGO_PASSWORD: envalid.str(),
     MONGO_URI: envalid.str(),
-    PORT: envalid.port()
+    PORT: envalid.port(),
+    SECRET_TOKEN: envalid.str()
   });
 }

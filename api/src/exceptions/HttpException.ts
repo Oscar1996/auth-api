@@ -1,5 +1,3 @@
-import { measureMemory } from 'vm';
-
 class HttpException extends Error {
   status: number;
   message: string;
@@ -12,14 +10,3 @@ class HttpException extends Error {
 }
 
 export default HttpException;
-
-// import HttpException from './HttpException';
-
-// class PostNotFoundException extends HttpException {
-
-//   constructor(id: number) {
-//     super(404, `Post with id ${id} not found!`);
-//   }
-// }
-
-// export default PostNotFoundException;

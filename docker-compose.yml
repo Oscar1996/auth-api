@@ -8,4 +8,4 @@ services:
       - /app/node_modules
       - ./api:/app
     ports:
-      - '8080:4000'
+      - '8080:8080'

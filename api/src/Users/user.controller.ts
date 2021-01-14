@@ -1,6 +1,7 @@
 import { Request, Response, Router } from 'express';
 
-import Controller from '../../interfaces/controller.interface';
+import Controller from '../interfaces/controller.interface';
+import User from './user.interface';
 import userModel from './user.model';
 
 class UserController implements Controller {
@@ -16,7 +17,7 @@ class UserController implements Controller {
     this.router.get(this.path, this.getAllUsers);
   }
 
-  getAllUsers = async (req: Request, res: Response) => {
+  getAllUsers = async (_req: Request, res: Response) => {
     const users = await this.user.find();
     if (!users) return res.status(404).json({ message: 'Users not found!' });
     return res.status(200).json(users);
