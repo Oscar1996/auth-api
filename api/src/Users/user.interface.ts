@@ -10,11 +10,9 @@ interface User {
     city: string;
     country: string;
   };
-  tokens: [
-    {
-      token: string;
-    }
-  ];
+  tokens: {
+    token: string;
+  }[];
 }
 
 export default User;

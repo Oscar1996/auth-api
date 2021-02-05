@@ -4,8 +4,8 @@ import Post from './post.interface';
 const postSchema = new mongoose.Schema(
   {
     author: {
-      type: String,
-      required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
     },
     content: {
       type: String,

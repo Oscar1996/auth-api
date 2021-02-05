@@ -13,10 +13,13 @@ class App {
 
   constructor(controllers: Controller[]) {
     this.app = express();
-    // the order is important here
     this.initializeMiddleware();
     this.initializeControllers(controllers);
     this.initializeErrorMiddleware();
+  }
+
+  public getServer() {
+    return this.app;
   }
 
   private listen() {

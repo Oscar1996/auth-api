@@ -1,7 +1,9 @@
-import { Request, Response, NextFunction, Router } from 'express';
+import { Response, NextFunction, Router } from 'express';
+import RequestWithUser from '../interfaces/requestWithUser.interface';
 import Controller from '../interfaces/controller.interface';
 import validationMiddleware from '../middlewares/validation.middleware';
-import PostNotFoundException from '../exceptions/PostNorFoundException';
+import authenticationMiddleware from '../middlewares/authentication.middleware';
+import PostNotFoundException from '../exceptions/PostNotFoundException';
 import Post from './post.interface';
 import postModel from './post.model';
 import CreatePostDto from './post.dto';
@@ -16,55 +18,54 @@ class PostController implements Controller {
   }
 
   private initializeRoutes() {
-    this.router.get(this.path, this.getAllPosts);
-    this.router.get(`${this.path}/:id`, this.getPostById);
-    this.router.post(
-      this.path,
-      validationMiddleware(CreatePostDto),
-
-      this.createPost
+    this.router.get(this.path, authenticationMiddleware, this.getAllPosts);
+    this.router.get(`${this.path}/:id`, authenticationMiddleware, this.getPostById);
+    this.router.post(this.path, authenticationMiddleware, validationMiddleware(CreatePostDto), this.createPost);
+    this.router.patch(
+      `${this.path}/:id`,
+      authenticationMiddleware,
+      validationMiddleware(CreatePostDto, true),
+      this.updatePost
     );
-    this.router.patch(`${this.path}/:id`, validationMiddleware(CreatePostDto, true), this.updatePost);
-    this.router.delete(`${this.path}/:id`, this.deletePost);
+    this.router.delete(`${this.path}/:id`, authenticationMiddleware, this.deletePost);
   }
 
-  private getAllPosts = async (_req: Request, res: Response) => {
-    const posts = await this.post.find();
-    // Empty arrays are truthy
+  private getAllPosts = async (req: RequestWithUser, res: Response) => {
+    const posts = await this.post
+      .find({ author: req.user._id })
+      .populate('author', '-password -tokens -createdAt -updatedAt');
     if (posts.length === 0) return res.status(404).json({ message: 'Posts not found!' });
-    res.status(200).json(posts);
+    return res.status(200).json(posts);
   };
 
-  private getPostById = async (req: Request, res: Response, next: NextFunction) => {
+  private getPostById = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     const id = req.params.id;
-    const post = await this.post.findById(id);
+    const post = await this.post.find({ author: req.user._id, _id: id }).populate('author', '-password -tokens');
     if (!post) return next(new PostNotFoundException(id));
-    res.status(200).json(post);
+    return res.status(200).json(post);
   };
 
-  private createPost = async (req: Request, res: Response) => {
-    const postData: Post = req.body;
-    const createdPost = new this.post(postData);
+  private createPost = async (req: RequestWithUser, res: Response) => {
+    const postData: CreatePostDto = req.body;
+    const createdPost = new this.post({ ...postData, author: req.user._id });
     const savedPost = await createdPost.save();
     if (!savedPost) return res.status(204).json({ message: 'Post not created' });
-    res.status(201).json(savedPost);
+    return res.status(201).json(savedPost);
   };
 
-  private updatePost = async (req: Request, res: Response, next: NextFunction) => {
+  private updatePost = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     const id = req.params.id;
     const postData: Post = req.body;
-    const updatedPost = await this.post.findByIdAndUpdate(id, postData, {
-      new: true
-    });
+    const updatedPost = await this.post.updateOne({ author: req.user.id, _id: id }, postData, { new: true });
     if (!updatedPost) return next(new PostNotFoundException(id));
-    res.status(200).json(updatedPost);
+    return res.status(200).json(updatedPost);
   };
 
-  private deletePost = async (req: Request, res: Response, next: NextFunction) => {
+  private deletePost = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     const id = req.params.id;
-    const deletedPost = await this.post.findByIdAndDelete(id);
+    const deletedPost = await this.post.deleteOne({ author: req.user._id, _id: id });
     if (!deletedPost) return next(new PostNotFoundException(id));
-    res.status(200).json(deletedPost);
+    return res.status(200).json(deletedPost);
   };
 }
 
