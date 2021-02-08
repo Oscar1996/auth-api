@@ -4,41 +4,38 @@ services:
   - docker
   
 before_install:
-  - docker build -t oscarval196/tsapi -f Dockerfile.dev ./api
+  - docker build -t oscarval196/tsapi-dev -f Dockerfile.dev ./api
+  - docker build -t oscarval196/tsapi ./api
+  - docker tag oscarval196/tsapi registry.heroku.com/$HEROKU_APP/web
+
+before_script:
+  - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+  - curl https://cli-assets.heroku.com/install.sh | sh  #install heroku
+  - docker login --username=$HEROKU_LOGIN --password=$HEROKU_API_KEY registry.heroku.com 
 
 script:
   # -- --coverage exit the process when the test are finished
-  - docker run -e CI=true oscarval196/tsapi npm run test -- --coverage
+  - docker run -e CI=true oscarval196/tsapi-dev npm run test -- --coverage
 
-
-
-deploy:
-  provider: heroku
-  api_key:
-    secure: "YOUR ENCRYPTED API KEY"
-
-
-
-
-    sudo: required
-language: python
-services:
-        - docker
-
-before_script:
-        - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-        - curl https://cli-assets.heroku.com/install.sh | sh  #install heroku
-        - docker login --username=$HEROKU_LOGIN --password=$HEROKU_API_KEY registry.heroku.com 
-
-script:
-        - docker build -t aabhusan/koora:v2 .
-        - docker tag aabhusan/koora:v2 registry.heroku.com/$HEROKU_APP/web 
-          
 deploy:   
-        provider: script
-        script: 
-               docker push aabhusan/koora:v2;
-               docker push registry.heroku.com/$HEROKU_APP/web;
-               heroku container:release web --app $HEROKU_APP
-        on:
-          branch: aabhusan
+  provider: script
+  script: 
+    docker push oscarval196/tsapi;
+    docker push registry.heroku.com/$HEROKU_APP/web;
+    heroku container:release web --app $HEROKU_APP
+  on:
+    branch: main
+
+
+
+
+
+# Deploying to heroku 
+
+# heroku login
+# heroku container:login
+# heroku create <YOUR_APP_NAME>
+# heroku git:remote -a <YOUR_APP_NAME>
+# heroku container:push web <YOUR_APP_NAME>
+# heroku container:release web <YOUR_APP_NAME>
+# Logout heroku container
