@@ -70,3 +70,4 @@ class PostController implements Controller {
 }
 
 export default PostController;
+//test
