@@ -5,21 +5,22 @@ services:
   
 before_install:
   - docker build -t oscarval196/tsapi-dev -f ./api/Dockerfile.dev ./api
-  - docker run -e CI=true oscarval196/tsapi-dev npm run test -- --coverage
   
 # heroku plugins:install heroku-container-registry
 before_script:
+  - curl https://cli-assets.heroku.com/install.sh | sh
   - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-  - curl https://cli-assets.heroku.com/install.sh | sh  #install heroku
   - docker login --username=$HEROKU_LOGIN --password=$HEROKU_API_KEY registry.heroku.com 
+  - docker run -e CI=true oscarval196/tsapi-dev npm run test -- --coverage
   
-script:  
+  
+script:
   - docker build -t oscarval196/tsapi ./api
   - docker tag oscarval196/tsapi registry.heroku.com/$HEROKU_APP/web
 
-deploy:   
+deploy:
   provider: script
-  script: 
+  script:
     docker push oscarval196/tsapi;
     docker push registry.heroku.com/$HEROKU_APP/web;
     heroku container:release web --app $HEROKU_APP
